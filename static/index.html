@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unfall-KI-Klassifizierungstool</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        #resultsCard { display: none; margin-top: 2rem; }
+        .zh-text { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <hgroup>
+            <h1>Unfallbericht Klassifizierung (MVP)</h1>
+            <p>Lokale, datenschutzkonforme KI-Verarbeitung (Qwen2.5-7B) mit Mandarin-Übersetzung für internationale Projektpartner.</p>
+        </hgroup>
+        
+        <form id="classifierForm">
+            <label for="report">
+                Unstrukturierter Unfallbericht (Freitext):
+                <textarea id="report" name="report" rows="5" required placeholder="Beispiel: Der Mitarbeiter rutschte beim Tragen einer Kiste im Lager auf einer Ölspur aus und verstauchte sich das rechte Handgelenk..."></textarea>
+            </label>
+            <button type="submit" id="submitBtn">Bericht analysieren</button>
+        </form>
+
+        <article id="resultsCard">
+            <header>
+                <strong>Extrahierte Strukturdaten (JSON Output)</strong>
+            </header>
+            <table class="striped">
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 30%;">Unfallkategorie</th>
+                        <td id="resCategory"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Betroffenes Körperteil</th>
+                        <td id="resBody"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Schweregrad</th>
+                        <td id="resSeverity"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Summary (EN)</th>
+                        <td id="resEn"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Summary (ZH)</th>
+                        <td id="resZh" class="zh-text"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </main>
+
+    <script>
+        document.getElementById('classifierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const report = document.getElementById('report').value;
+            const resultsCard = document.getElementById('resultsCard');
+            
+            // Visual feedback during processing
+            btn.setAttribute('aria-busy', 'true');
+            btn.textContent = 'Verarbeite lokal...';
+            resultsCard.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/classify', {
+                    method: 'POST',
+                    body: report
+                });
+                
+                if (!response.ok) throw new Error('Netzwerk- oder Serverfehler');
+                
+                const data = await response.json();
+                
+                // Populate the results table
+                document.getElementById('resCategory').textContent = data.category || '-';
+                document.getElementById('resBody').textContent = data.body_part || '-';
+                document.getElementById('resSeverity').textContent = data.severity || '-';
+                document.getElementById('resEn').textContent = data.summary_en || '-';
+                document.getElementById('resZh').textContent = data.summary_zh || '-';
+                
+                resultsCard.style.display = 'block';
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Fehler bei der Verbindung zur lokalen KI. Läuft Ollama?");
+            } finally {
+                btn.removeAttribute('aria-busy');
+                btn.textContent = 'Bericht analysieren';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,6 +2,10 @@
 
 A proof-of-concept AI classification tool designed for the automated extraction and coding of workplace accident scenarios from unstructured free text.
 
+![Project Demo](demo.gif)
+
+A proof-of-concept AI classification tool designed for the automated extraction and coding of workplace accident scenarios from unstructured free text.
+
 ## Project Rationale
 
 The goal of this prototype is to automate the extraction of structured data from unstructured incident reports, while simultaneously facilitating multilingual documentation to support international collaboration.
